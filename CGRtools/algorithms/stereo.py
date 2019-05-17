@@ -18,7 +18,7 @@
 #
 from collections import defaultdict
 from itertools import combinations, product
-from typing import List, Dict
+from typing import List, Dict, Tuple
 from ..cache import cached_property
 
 
@@ -100,19 +100,15 @@ def _dihedral_sign(n, u, v, w):
 
 class Stereo:
     @cached_property
-    def tetrahedrons(self) -> Dict[int, List[int]]:
+    def tetrahedrons(self) -> Dict[int, Tuple[int]]:
         # tetrahedral should be single bonded and contain zero or one H
-        atoms = self._node
-        return {n: list(env) for n, env in self._adj.items()
-                if atoms[n].element == 'C' and all(x.order == 1 for x in env.values())}
-
-    def __tetrahedrons(self):
-        atoms = self._node
+        atoms = self._atoms
         tetrahedrons = {}
-        for n, env in self.tetrahedrons.items():
-            env = tuple(x for x in env if atoms[x].element != 'H')
-            if len(env) >= 3:
-                tetrahedrons[n] = env
+        for n, env in self._bonds.items():
+            if atoms[n].element == 'C' and all(x.order == 1 for x in env.values()):
+                env = tuple(x for x in env if atoms[x].element != 'H')
+                if len(env) in (3, 4):
+                    tetrahedrons[n] = env
         return tetrahedrons
 
     @cached_property
