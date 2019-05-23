@@ -37,29 +37,35 @@ class Morgan:
         elif len(self) == 1:  # optimize single atom containers
             return dict.fromkeys(self, 2)
 
-        params = {n: (int(node), tuple(sorted(int(edge) for edge in self._adj[n].values())))
-                  for n, node in self.atoms()}
-        newlevels = {}
-        countprime = iter(primes)
-        weights = {x: newlevels.get(y) or newlevels.setdefault(y, next(countprime))
-                   for x, y in sorted(params.items(), key=itemgetter(1))}
-        return self._morgan(weights)
+        adj = self._bonds
+        params = {n: (int(node), tuple(sorted(int(edge) for edge in adj[n].values())))
+                  for n, node in self._atoms.items()}
+        return self._morgan(self._sorted_primed(params))
+
+    @staticmethod
+    def _sorted_primed(params):
+        levels = {}
+        iter_primes = iter(primes)
+        primed = {}
+        for x, y in sorted(params.items(), key=itemgetter(1)):
+            try:
+                primed[x] = levels[y]
+            except KeyError:
+                primed[x] = levels[y] = next(iter_primes)
+        return primed
 
     def _morgan(self, weights):
         tries = len(self) * 4
+        adj = self._bonds
         numb = len(set(weights.values()))
         stab = 0
 
         while tries:
             oldnumb = numb
-            neweights = {}
-            countprime = iter(primes)
 
             # weights[n] ** 2 NEED for differentiation of molecules like A-B or any other complete graphs.
-            tmp = {n: reduce(mul, (weights[x] for x in m), weights[n] ** 2) for n, m in self._adj.items()}
-
-            weights = {x: (neweights.get(y) or neweights.setdefault(y, next(countprime)))
-                       for x, y in sorted(tmp.items(), key=itemgetter(1))}
+            tmp = {n: reduce(mul, (weights[x] for x in m), weights[n] ** 2) for n, m in adj.items()}
+            weights = self._sorted_primed(tmp)
 
             numb = len(set(weights.values()))
             if numb == len(self):  # each atom now unique
@@ -82,7 +88,6 @@ class Morgan:
                 tries = 1
         else:
             warning('morgan. number of attempts exceeded')
-
         return weights
 
 

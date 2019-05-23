@@ -38,5 +38,23 @@ class InvalidFileType(TypeError):
 
 class InvalidAromaticRing(ValueError):
     """
-    aromatic ring has impossible kekule structure
+    impossible kekule structure
+    """
+
+
+class InvalidAtomNumber(KeyError):
+    """
+    atom number not found
+    """
+
+
+class InvalidWedgeMark(ValueError):
+    """
+    wedge mark error
+    """
+
+
+class InvalidStereoCenter(KeyError):
+    """
+    impossible stereo
     """

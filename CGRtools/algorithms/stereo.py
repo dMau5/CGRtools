@@ -17,6 +17,8 @@
 #  along with this program; if not, see <https://www.gnu.org/licenses/>.
 #
 from itertools import combinations, product
+from ..cache import cached_property
+from ..exceptions import InvalidAtomNumber, InvalidWedgeMark, InvalidStereoCenter
 
 
 def _pyramid_sign(n, u, v, w):
@@ -96,6 +98,29 @@ def _dihedral_sign(n, u, v, w):
 
 
 class Stereo:
+    def add_wedge(self, n, m, mark):
+        try:
+            if self._bonds[n][m].order not in (1, 4):
+                raise InvalidWedgeMark((n, m))
+        except KeyError:
+            raise InvalidAtomNumber((n, m))
+
+        if n in self.__tetrahedrons:
+            env = self.__tetrahedrons[n]
+
+        elif n in self.__allenes:
+            ...
+        else:
+            raise InvalidStereoCenter(n)
+
+    @cached_property
+    def chiral_atoms(self):
+        morgan = self.atoms_order
+
+        tetrahedron = {n: env for n, env in self.__tetrahedrons.items()
+                       if len(set(morgan[x] for x in env)) == len(env)}
+
+    @cached_property
     def __tetrahedrons(self):
         #    2
         #    |
@@ -111,6 +136,7 @@ class Stereo:
                 tetrahedrons[n] = env
         return tetrahedrons
 
+    @cached_property
     def __allenes(self):
         # 3           4
         #  \         /
