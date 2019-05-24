@@ -145,11 +145,10 @@ class Stereo:
                 for n in e:
                     ...
 
-
-
-        stereo_atom = [n for n, atom in  ]
-        stereo_bond = []
-
+    def _translate_atom_stereo(self, n, u, v, w, *args):
+        t = self.__tetrahedrons
+        a = self.__allenes
+        if n in self._stereo
 
     @cached_property
     def __tetrahedrons(self):
@@ -267,6 +266,26 @@ class Stereo:
                 continue
             atropos[(n, m)] = (n, m, r1n, r2n, r1m, r2m, nr1n, nr2n, nr1m, nr2m)
         return atropos
+
+
+# 2  3
+#  \ |
+#   \|
+#    0---4
+#   /
+#  /
+# 1
+_tetrahedron_translate = {(1, 2, 3): 1, (2, 3, 1): 1, (3, 1, 2): 1, (1, 3, 2): -1, (2, 1, 3): -1, (3, 2, 1): -1,
+                          (1, 4, 2): 1, (4, 2, 1): 1, (2, 1, 4): 1, (1, 2, 4): -1, (2, 4, 1): -1, (4, 1, 2): -1,
+                          (1, 3, 4): 1, (3, 4, 1): 1, (4, 1, 3): 1, (1, 4, 3): -1, (4, 3, 1): -1, (3, 1, 4): -1,
+                          (2, 4, 3): 1, (4, 3, 2): 1, (3, 2, 4): 1, (2, 3, 4): -1, (3, 4, 2): -1, (4, 2, 3): -1}
+# 5     4
+#  \    |
+#   2---3
+#  /    |
+# 1     6
+_alkene_translate = {(1, 2, 3, 4): 1, (4, 3, 2, 1): 1, (1, 2, 3, 6): -1, (6, 3, 2, 1): -1,
+                     (5, 2, 3, 6): 1, (6, 3, 2, 5): 1, (5, 2, 3, 4): -1, (4, 3, 2, 5): -1}
 
 
 __all__ = ['Stereo']

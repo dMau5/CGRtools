@@ -34,8 +34,18 @@ class MoleculeContainer(Aromatize, Calculate2D, Compose, Morgan, Smiles, Standar
 
     new molecule object creation or copy of data object
     """
+    __slots__ = ('_atoms_stereo', '_bonds_stereo')
+
     node_attr_dict_factory = Atom
     edge_attr_dict_factory = Bond
+
+    def __init__(self, *args, **kwargs):
+        """
+        Empty data object initialization or conversion from another object type
+        """
+        super().__init__(*args, **kwargs)
+        self._atoms_stereo = {}
+        self._bonds_stereo = {}
 
     def reset_query_marks(self):
         """
