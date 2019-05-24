@@ -16,12 +16,22 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with this program; if not, see <https://www.gnu.org/licenses/>.
 #
+from collections import defaultdict
 from itertools import combinations, product
 from ..cache import cached_property
 from ..exceptions import InvalidAtomNumber, InvalidWedgeMark, InvalidStereoCenter
 
 
 def _pyramid_sign(n, u, v, w):
+    #
+    #  |   n /
+    #  |   |\
+    #  |   | \
+    #  |  /|  \
+    #  | / u---v
+    #  |/___\_/___
+    #        w
+    #
     nx, ny, nz = n
     ux, uy, uz = u
     vx, vy, vz = v
@@ -46,6 +56,9 @@ def _pyramid_sign(n, u, v, w):
 
 
 def _dihedral_sign(n, u, v, w):
+    # n    w
+    # |   /
+    # u--v
     nx, ny, nz = n
     ux, uy, uz = u
     vx, vy, vz = v
@@ -116,9 +129,27 @@ class Stereo:
     @cached_property
     def chiral_atoms(self):
         morgan = self.atoms_order
+        chiral_atoms = {n: env for n, env in self.__tetrahedrons.items()
+                        if len(set(morgan[x] for x in env)) == len(env)}
+        chiral_atoms.update({n: env for n, (*_, n1, m1, n2, m2) in self.__allenes.items()
+                             if env[2] != e})
 
-        tetrahedron = {n: env for n, env in self.__tetrahedrons.items()
-                       if len(set(morgan[x] for x in env)) == len(env)}
+    def __chiral_order(self):
+        morgan = self.atoms_order
+        equal_atoms = defaultdict(list)
+        for n in self._atoms:
+            equal_atoms[morgan[n]].append(n)
+        stereo_atoms = []
+        for e in equal_atoms.values():
+            if len(e) == 2:  # only two equal atoms can give new stereo center
+                for n in e:
+                    ...
+
+
+
+        stereo_atom = [n for n, atom in  ]
+        stereo_bond = []
+
 
     @cached_property
     def __tetrahedrons(self):
