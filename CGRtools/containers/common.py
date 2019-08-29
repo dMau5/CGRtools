@@ -30,17 +30,37 @@ class Graph(Isomorphism, SSSR, Morgan, ABC):
     __slots__ = ('_atoms', '_bonds', '_meta', '_plane', '__dict__', '__weakref__', '_parsed_mapping', '_charges',
                  '_radicals')
 
-    def __init__(self):
+    def __init__(self, graph: Optional['Graph'] = None):
         """
-        Empty data object initialization or conversion from another object type
+        Empty data object initialization or conversion from another graph
         """
-        self._atoms: Dict[int, Core] = {}
-        self._charges: Dict[int, int] = {}
-        self._radicals: Dict[int, bool] = {}
-        self._plane: Dict[int, Tuple[float, float]] = {}
-        self._bonds: Dict[int, Dict[int, Union[Bond, DynamicBond]]] = {}
-        self._meta = {}
-        self._parsed_mapping: Dict[int, int] = {}
+        if graph is not None:
+            self._charges = graph._charges.copy()
+            self._radicals = graph._radicals.copy()
+            self._plane = graph._plane.copy()
+            self._meta = graph._meta.copy()
+            self._parsed_mapping = graph._parsed_mapping.copy()
+
+            self._bonds = cb = {n: {} for n in graph._bonds}
+            seen = set()
+            for n, m_bond in graph._bonds.items():
+                seen.add(n)
+                for m, bond in m_bond.items():
+                    if m not in seen:
+                        cb[n][m] = cb[m][n] = bond.copy()
+
+            self._atoms = ca = {}
+            for n, atom in graph._atoms.items():
+                ca[n] = atom = atom.copy()
+                atom._attach_to_graph(self, n)
+        else:
+            self._charges: Dict[int, int] = {}
+            self._radicals: Dict[int, bool] = {}
+            self._plane: Dict[int, Tuple[float, float]] = {}
+            self._meta = {}
+            self._parsed_mapping: Dict[int, int] = {}
+            self._atoms: Dict[int, Core] = {}
+            self._bonds: Dict[int, Dict[int, Union[Bond, DynamicBond]]] = {}
 
     def __getstate__(self):
         return {'atoms': self._atoms, 'bonds': self._bonds, 'meta': self._meta, 'plane': self._plane,
@@ -267,7 +287,7 @@ class Graph(Isomorphism, SSSR, Morgan, ABC):
         :param meta: include metadata
         """
         copy = object.__new__(self.__class__)
-        copy.__dict__ = {}
+        #copy.__dict__ = {}
         copy._meta = self._meta.copy() if meta else {}
 
         copy._charges = self._charges.copy()

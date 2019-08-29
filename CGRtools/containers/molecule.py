@@ -34,14 +34,24 @@ class MoleculeContainer(Graph, Aromatize, Standardize, MoleculeSmiles, DepictMol
     __slots__ = ('_conformers', '_neighbors', '_hybridizations', '_atoms_stereo', '_bonds_stereo', '_hydrogens')
     __class_cache__ = {}
 
-    def __init__(self):
-        self._conformers: List[Dict[int, Tuple[float, float, float]]] = []
-        self._neighbors: Dict[int, int] = {}
-        self._hybridizations: Dict[int, int] = {}
-        self._hydrogens: Dict[int, Optional[int]] = {}
-        self._atoms_stereo: Dict[int, int] = {}
-        self._bonds_stereo: Dict[int, Dict[int, int]] = {}
-        super().__init__()
+    def __init__(self, graph: Optional['MoleculeContainer'] = None):
+        if isinstance(graph, MoleculeContainer):
+            self._conformers = [c.copy() for c in graph._conformers]
+            self._neighbors = graph._neighbors.copy()
+            self._hybridizations = graph._hybridizations.copy()
+            self._hydrogens = graph._hydrogens.copy()
+            self._atoms_stereo = graph._atoms_stereo.copy()
+            self._bonds_stereo = {n: s.copy() for n, s in graph._bonds_stereo.items()}
+        elif graph is None:
+            self._conformers: List[Dict[int, Tuple[float, float, float]]] = []
+            self._neighbors: Dict[int, int] = {}
+            self._hybridizations: Dict[int, int] = {}
+            self._hydrogens: Dict[int, Optional[int]] = {}
+            self._atoms_stereo: Dict[int, int] = {}
+            self._bonds_stereo: Dict[int, Dict[int, int]] = {}
+        else:
+            raise TypeError('None or MoleculeContainer expected')
+        super().__init__(graph)
 
     def add_atom(self, atom: Union[Element, int, str], *args, charge=0, is_radical=False, **kwargs):
         if not isinstance(atom, Element):
